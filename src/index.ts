@@ -43,7 +43,7 @@ export namespace ResolveExports {
   }
 }
 
-const pathMatchersCache = new WeakMap<PackageExports, PathMatcher[]>()
+const pathMatchersCache = new WeakMap<PackageExports, RegExp[]>()
 
 export const resolveExports: ResolveExports = (
   pkg,
@@ -83,15 +83,12 @@ export const resolveExports: ResolveExports = (
   const matchers = pathMatchersCache.get(exports) || []
   pathMatchersCache.set(exports, matchers)
 
-  let bestKey: string | undefined
+  let globPattern: string | undefined
   let globResolved: string[] | undefined
 
   for (let i = 0; i < keys.length; i++) {
-    const [matcher, mapping] = (matchers[i] ||= parsePathPattern(
-      pkg,
-      keys[i],
-      exports
-    ))
+    const pattern = keys[i].replace(trailingSlashRE, '/*')
+    const matcher = (matchers[i] ||= parsePathPattern(pkg, pattern))
 
     const match = entry.match(matcher)
     if (match) {
@@ -99,7 +96,7 @@ export const resolveExports: ResolveExports = (
       const resolved = resolveMapping(
         pkg,
         entry,
-        mapping,
+        exports[keys[i]],
         conditions,
         assertMatch && isExactMatch
       )
@@ -119,7 +116,7 @@ export const resolveExports: ResolveExports = (
         continue
       }
 
-      if (bestKey && patternKeyCompare(bestKey, keys[i]) <= 0) {
+      if (globPattern && patternKeyCompare(globPattern, pattern) <= 0) {
         // The glob was matched and conditions matched, but a better
         // match was already found. Keep looking.
         continue
@@ -127,7 +124,7 @@ export const resolveExports: ResolveExports = (
 
       // In the case of glob patterns, the most specific pattern wins
       // and so we shouldn't return yet.
-      bestKey = keys[i]
+      globPattern = pattern
       globResolved = resolved.map((path) => {
         let slotIndex = 1
         return path.replace(trailingSlashRE, '/*').replace(wildTokenRE, () => {
@@ -224,36 +221,29 @@ const wildTokenRE = /\*/g
 const trailingSlashRE = /\/$/
 const escapedTokenRE = /[|\\{}()[\]^$+?.]/g
 
-type PathMatcher = [RegExp, ExportMapping]
-
-function parsePathPattern(
-  pkg: PackageJson,
-  pattern: string,
-  exports: PackageExports
-): PathMatcher {
+function parsePathPattern(pkg: PackageJson, pattern: string): RegExp {
   if (pattern[0] !== '.')
     throw new Error(
       `Invalid path pattern "${pattern}" in "${pkg.name}" package`
     )
 
   const escapedPattern = pattern
-    .replace(trailingSlashRE, '/*')
     .replace(escapedTokenRE, '\\$&')
     .replace(wildTokenRE, '(.*?)')
 
-  return [new RegExp(`^${escapedPattern}$`), exports[pattern]]
+  return new RegExp(`^${escapedPattern}$`)
 }
 
-// https://github.com/nodejs/node/blob/3c423a2030d35faace4aa85a7a05ed816a32f8d1/lib/internal/modules/esm/resolve.js#L605
+/**
+ * Adapted from…
+ *   https://github.com/nodejs/node/blob/3c423a2030d35faace4aa85a7a05ed816a32f8d1/lib/internal/modules/esm/resolve.js#L605
+ * …except we only call it when both `a` and `b` are globs.
+ */
 function patternKeyCompare(a: string, b: string) {
   const aPatternIndex = a.indexOf('*')
   const bPatternIndex = b.indexOf('*')
-  const baseLenA = aPatternIndex === -1 ? a.length : aPatternIndex + 1
-  const baseLenB = bPatternIndex === -1 ? b.length : bPatternIndex + 1
-  if (baseLenA > baseLenB) return -1
-  if (baseLenB > baseLenA) return 1
-  if (aPatternIndex === -1) return 1
-  if (bPatternIndex === -1) return -1
+  if (aPatternIndex > bPatternIndex) return -1
+  if (bPatternIndex > aPatternIndex) return 1
   if (a.length > b.length) return -1
   if (b.length > a.length) return 1
   return 0

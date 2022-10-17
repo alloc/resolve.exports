@@ -221,6 +221,11 @@ describe('resolveExports', () => {
       expect(resolveExports(pkg, './foo')).toEqual([])
       expect(resolveExports(pkg, './foo/')).toEqual(['./bar/'])
       expect(resolveExports(pkg, './foo/main.js')).toEqual(['./bar/main.js'])
+
+      // Even though this comes after the "./foo/" pattern, it is more
+      // specific and so it will be used instead.
+      pkg.exports!['./foo/bar/'] = './ok/'
+      expect(resolveExports(pkg, './foo/bar/baz')).toEqual(['./ok/baz'])
     })
   })
 
