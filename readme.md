@@ -30,6 +30,16 @@ The [`require`](https://github.com/lukeed/resolve.exports/#optionsrequire) was r
 
 The [`unsafe`](https://github.com/lukeed/resolve.exports/#optionsunsafe) and `browser` options have been removed. There is no way to replicate the behavior of `unsafe` in this package. The [`browser`](https://github.com/lukeed/resolve.exports/#optionsbrowser) option was removed because I want to leave room for future platform conditions (beyond just `browser` and `node`).
 
+#### Bug fixes
+
+The following issues from `resolve.exports` are fixed by this package:
+
+- https://github.com/lukeed/resolve.exports/issues/7
+- https://github.com/lukeed/resolve.exports/issues/9
+- https://github.com/lukeed/resolve.exports/issues/16
+- https://github.com/lukeed/resolve.exports/issues/17
+- https://github.com/lukeed/resolve.exports/issues/19
+
 &nbsp;
 
 ### Type definitions
