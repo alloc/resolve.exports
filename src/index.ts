@@ -62,12 +62,14 @@ export const resolveExports: ResolveExports = (
   }
 
   const conditions = expandSet(
-    new Set(options.conditions),
-    inlineConditions,
+    new Set(inlineConditions),
+    options.conditions,
     options.isProduction ? 'production' : 'development',
-    options.isRequire ? 'require' : ['import', 'module'],
     'default'
   )
+  if (!conditions.has('import')) {
+    expandSet(conditions, options.isRequire ? 'require' : ['import', 'module'])
+  }
 
   const keys = Object.keys(exports)
   if (keys[0][0] !== '.') {
@@ -245,7 +247,10 @@ function missingEntry(
   return []
 }
 
-function expandSet<T>(set: Set<T>, ...conditions: (T | T[] | undefined)[]) {
+function expandSet<T>(
+  set: Set<T>,
+  ...conditions: (T | readonly T[] | undefined)[]
+): Set<T> {
   conditions.flat().forEach((arg: any) => arg && set.add(arg))
   return set
 }
