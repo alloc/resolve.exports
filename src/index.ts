@@ -217,9 +217,11 @@ function patternKeyCompare(a: string, b: string) {
   const bPatternIndex = b.indexOf('*')
   if (aPatternIndex > bPatternIndex) return -1
   if (bPatternIndex > aPatternIndex) return 1
+  /* c8 ignore start */
   if (a.length > b.length) return -1
   if (b.length > a.length) return 1
   return 0
+  /* c8 ignore end */
 }
 
 function expandSet<T>(
