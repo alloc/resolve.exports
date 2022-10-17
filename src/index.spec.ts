@@ -1,7 +1,6 @@
 import { test, describe, expect } from 'vitest'
 import { PackageJson, ResolveExports, resolveExports } from '.'
 
-const assertMatch = { assertMatch: true }
 const isRequire = { isRequire: true }
 const isProduction = { isProduction: true }
 const opts = (...args: ResolveExports.Options[]) => Object.assign({}, ...args)
@@ -28,11 +27,6 @@ describe('resolveExports', () => {
 
     // Invalid entry
     expect(resolveExports(pkg, './bar')).toEqual([])
-    expect(() =>
-      resolveExports(pkg, './bar', assertMatch)
-    ).toThrowErrorMatchingInlineSnapshot(
-      '"Missing \\"./bar\\" export in \\"foo\\" package"'
-    )
   })
 
   describe('exports = paths object', () => {
@@ -125,11 +119,7 @@ describe('resolveExports', () => {
       expect(resolveExports(pkg, '.', isRequire)).toEqual([])
 
       // Matches "import" condition but not "development"
-      expect(() =>
-        resolveExports(pkg, '.', opts(isProduction, assertMatch))
-      ).toThrowErrorMatchingInlineSnapshot(
-        '"No known conditions for \\".\\" entry in \\"foo\\" package"'
-      )
+      expect(resolveExports(pkg, '.', opts(isProduction))).toEqual([])
     })
 
     test('string mapping with default condition', () => {
