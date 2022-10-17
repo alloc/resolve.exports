@@ -1,0 +1,46 @@
+{
+  "name": "@alloc/resolve.exports",
+  "version": "1.0.0",
+  "description": "A tiny (854b), correct, general-purpose, and configurable \"exports\" resolver without file-system reliance",
+  "repository": "alloc/resolve.exports",
+  "license": "MIT",
+  "author": "Alec Larson",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "tsup && tsc -p . --emitDeclarationOnly",
+    "dev": "tsup --watch --sourcemap --dts",
+    "coverage": "vitest run --coverage",
+    "test": "vitest"
+  },
+  "files": [
+    "dist"
+  ],
+  "module": "dist/index.mjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+    "esm",
+    "exports",
+    "esmodules",
+    "fields",
+    "modules",
+    "resolution",
+    "resolve"
+  ],
+  "devDependencies": {
+    "@vitest/coverage-c8": "^0.24.3",
+    "prettier": "^2.7.1",
+    "tsup": "^6.3.0",
+    "vitest": "^0.24.3"
+  }
+}
