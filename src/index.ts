@@ -43,7 +43,7 @@ export namespace ResolveExports {
   }
 }
 
-const pathMatchersCache = new WeakMap<PackageExports, PathMatchers>()
+const pathMatchersCache = new WeakMap<PackageExports, PathMatcher[]>()
 
 export const resolveExports: ResolveExports = (
   pkg,
@@ -78,20 +78,18 @@ export const resolveExports: ResolveExports = (
     )
   }
 
-  const pathMatchers =
-    pathMatchersCache.get(exports) || parsePathPatterns(pkg, keys, exports)
-  pathMatchersCache.set(exports, pathMatchers)
-  const [matchers, nullMatchers] = pathMatchers
-
-  for (const matcher of nullMatchers) {
-    if (matcher.test(entry)) {
-      return missingEntry(pkg, entry, assertMatch)
-    }
-  }
+  const matchers = pathMatchersCache.get(exports) || []
+  pathMatchersCache.set(exports, matchers)
 
   let globResolved: string[] | undefined
 
-  for (const [matcher, mapping] of matchers) {
+  for (let i = 0; i < keys.length; i++) {
+    const [matcher, mapping] = (matchers[i] ||= parsePathPattern(
+      pkg,
+      keys[i],
+      exports
+    ))
+
     const match = entry.match(matcher)
     if (match) {
       const isExactMatch = match.length === 1
@@ -216,37 +214,24 @@ const wildTokenRE = /\*/g
 const trailingSlashRE = /\/$/
 const escapedTokenRE = /[|\\{}()[\]^$+?.]/g
 
-type PathMatchers = [
-  matchers: [RegExp, ExportMapping][],
-  nullMatchers: RegExp[]
-]
+type PathMatcher = [RegExp, ExportMapping]
 
-function parsePathPatterns(
+function parsePathPattern(
   pkg: PackageJson,
-  patterns: string[],
+  pattern: string,
   exports: PackageExports
-): PathMatchers {
-  const matchers: [RegExp, ExportMapping][] = []
-  const nullMatchers: RegExp[] = []
-  for (const pattern of patterns) {
-    if (pattern[0] !== '.')
-      throw new Error(
-        `Invalid path pattern "${pattern}" in "${pkg.name}" package`
-      )
+): PathMatcher {
+  if (pattern[0] !== '.')
+    throw new Error(
+      `Invalid path pattern "${pattern}" in "${pkg.name}" package`
+    )
 
-    const escapedPattern = pattern
-      .replace(trailingSlashRE, '/*')
-      .replace(escapedTokenRE, '\\$&')
-      .replace(wildTokenRE, '(.*?)')
+  const escapedPattern = pattern
+    .replace(trailingSlashRE, '/*')
+    .replace(escapedTokenRE, '\\$&')
+    .replace(wildTokenRE, '(.*?)')
 
-    const matcher = new RegExp(`^${escapedPattern}$`)
-    if (exports[pattern] === null) {
-      nullMatchers.push(matcher)
-    } else {
-      matchers.push([matcher, exports[pattern]])
-    }
-  }
-  return [matchers, nullMatchers]
+  return [new RegExp(`^${escapedPattern}$`), exports[pattern]]
 }
 
 function missingEntry(
