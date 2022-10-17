@@ -6,7 +6,7 @@ export type PackageExports = {
 
 export type PackageJson = {
   name?: string
-  exports?: ExportMapping | PackageExports
+  exports?: ExportMapping
 }
 
 export interface ResolveExports {

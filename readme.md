@@ -31,9 +31,13 @@ The [`unsafe`](https://github.com/lukeed/resolve.exports/#optionsunsafe) and `br
 ### Type definitions
 
 ```ts
-export declare type PackageJson = {
+type ExportMapping = null | string | PackageExports | readonly ExportMapping[]
+export type PackageExports = {
+  [key: string]: ExportMapping
+}
+export type PackageJson = {
   name?: string
-  exports?: ExportMapping | PackageExports
+  exports?: ExportMapping
 }
 export interface ResolveExports {
   (
