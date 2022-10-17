@@ -21,10 +21,6 @@ export interface ResolveExports {
 export namespace ResolveExports {
   export type Options = {
     /**
-     * Throw an error if no matching entry is found.
-     */
-    assertMatch?: boolean
-    /**
      * Custom conditions to match with.
      *
      * @example ['node']
@@ -51,9 +47,8 @@ export const resolveExports: ResolveExports = (
   options = {},
   inlineConditions
 ) => {
-  const { assertMatch } = options
   if (entry !== '.' && !entry.startsWith('./')) {
-    return missingEntry(pkg, entry, assertMatch)
+    return []
   }
 
   let { exports } = pkg
@@ -74,9 +69,7 @@ export const resolveExports: ResolveExports = (
   const keys = Object.keys(exports)
   if (keys[0][0] !== '.') {
     return (
-      (entry === '.' &&
-        resolveMapping(pkg, entry, exports, conditions, assertMatch)) ||
-      missingEntry(pkg, entry, assertMatch)
+      (entry === '.' && resolveMapping(pkg, entry, exports, conditions)) || []
     )
   }
 
@@ -93,16 +86,10 @@ export const resolveExports: ResolveExports = (
     const match = entry.match(matcher)
     if (match) {
       const isExactMatch = match.length === 1
-      const resolved = resolveMapping(
-        pkg,
-        entry,
-        exports[keys[i]],
-        conditions,
-        assertMatch && isExactMatch
-      )
+      const resolved = resolveMapping(pkg, entry, exports[keys[i]], conditions)
 
       if (resolved === null) {
-        return missingEntry(pkg, entry, assertMatch)
+        return []
       }
 
       // An exact match always ends the matcher loop.
@@ -134,11 +121,7 @@ export const resolveExports: ResolveExports = (
     }
   }
 
-  if (globResolved) {
-    return globResolved
-  }
-
-  return missingEntry(pkg, entry, assertMatch)
+  return globResolved || []
 }
 
 const isArray = Array.isArray as (value: unknown) => value is readonly unknown[]
@@ -147,8 +130,7 @@ function resolveMapping(
   pkg: PackageJson,
   entry: string,
   mapping: ExportMapping,
-  conditions: Set<string>,
-  assertMatch?: boolean
+  conditions: Set<string>
 ): string[] | null {
   if (mapping === null) {
     return null
@@ -157,17 +139,16 @@ function resolveMapping(
     return [mapping]
   }
   if (isArray(mapping)) {
-    return resolveArray(pkg, entry, mapping, conditions, assertMatch)
+    return resolveArray(pkg, entry, mapping, conditions)
   }
-  return resolveConditions(pkg, entry, mapping, conditions, assertMatch)
+  return resolveConditions(pkg, entry, mapping, conditions)
 }
 
 function resolveArray(
   pkg: PackageJson,
   entry: string,
   mapping: readonly ExportMapping[],
-  conditions: Set<string>,
-  assertMatch?: boolean
+  conditions: Set<string>
 ): string[] | null {
   const resolved: string[] = []
   for (const m of mapping) {
@@ -177,9 +158,6 @@ function resolveArray(
     }
     resolved.push(...mapped)
   }
-  if (resolved.length === 0) {
-    return missingEntry(pkg, entry, assertMatch)
-  }
   return resolved
 }
 
@@ -187,8 +165,7 @@ function resolveConditions(
   pkg: PackageJson,
   entry: string,
   exports: PackageExports,
-  conditions: Set<string>,
-  assertMatch?: boolean
+  conditions: Set<string>
 ): string[] | null {
   for (const condition in exports) {
     if (conditions.has(condition)) {
@@ -210,10 +187,6 @@ function resolveConditions(
       )
     }
   }
-  if (assertMatch)
-    throw new Error(
-      `No known conditions for "${entry}" entry in "${pkg.name}" package`
-    )
   return []
 }
 
@@ -247,17 +220,6 @@ function patternKeyCompare(a: string, b: string) {
   if (a.length > b.length) return -1
   if (b.length > a.length) return 1
   return 0
-}
-
-function missingEntry(
-  pkg: PackageJson,
-  entry: string,
-  assertMatch?: boolean
-): string[] {
-  if (assertMatch) {
-    throw new Error(`Missing "${entry}" export in "${pkg.name}" package`)
-  }
-  return []
 }
 
 function expandSet<T>(

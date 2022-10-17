@@ -12,11 +12,15 @@ An improved version of the acclaimed [`resolve.exports`](https://github.com/luke
 
 ### API differences
 
-This package exports a `resolveExports` function, whose type signature is incompatible with the original `resolve.exports` package. A few options have been removed or renamed to better fit the needs of [Vite](https://github.com/vitejs/vite). This package has no [`legacy`](https://github.com/lukeed/resolve.exports/#legacypkg-options) function export.
+This package exports a `resolveExports` function, whose type signature is incompatible with the original `resolve.exports` package. A few options have been removed or renamed to better fit the needs of [Vite](https://github.com/vitejs/vite).
+
+This package has no [`legacy`](https://github.com/lukeed/resolve.exports/#legacypkg-options) function export.
+
+This package only throws errors for invalid `exports` syntax. It returns an empty array if no modules are matched.
 
 #### Fallback arrays
 
-To support the "fallback array" feature (useful for glob patterns), the `resolveExports` function will always return an array of paths. If no matches are found, the array will be empty, unless the `assertMatch` option is true (in which case, an error will be thrown).
+To support the "fallback array" feature (useful for glob patterns), the `resolveExports` function will always return an array of paths. If no matches are found, the array will be empty.
 
 #### Renamed options
 
@@ -49,10 +53,6 @@ export interface ResolveExports {
 }
 export namespace ResolveExports {
   export type Options = {
-    /**
-     * Throw an error if no matching entry is found.
-     */
-    assertMatch?: boolean
     /**
      * Custom conditions to match with.
      *
