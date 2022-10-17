@@ -4,7 +4,7 @@ An improved version of the acclaimed [`resolve.exports`](https://github.com/luke
 
 - written in TypeScript
 - prefer readability over code golfing
-- only 19% larger than the original package (+146 bytes)
+- only 50% larger than the original package (+1.5kB, unminified)
 - tests use [Vitest](https://github.com/vitest-dev/vitest) (100% test coverage)
 - code formatted with Prettier
 
