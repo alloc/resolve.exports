@@ -83,6 +83,7 @@ export const resolveExports: ResolveExports = (
   const matchers = pathMatchersCache.get(exports) || []
   pathMatchersCache.set(exports, matchers)
 
+  let bestKey: string | undefined
   let globResolved: string[] | undefined
 
   for (let i = 0; i < keys.length; i++) {
@@ -118,8 +119,15 @@ export const resolveExports: ResolveExports = (
         continue
       }
 
-      // In the case of glob patterns, the last match wins and so we
-      // shouldn't return yet.
+      if (bestKey && patternKeyCompare(bestKey, keys[i]) <= 0) {
+        // The glob was matched and conditions matched, but a better
+        // match was already found. Keep looking.
+        continue
+      }
+
+      // In the case of glob patterns, the most specific pattern wins
+      // and so we shouldn't return yet.
+      bestKey = keys[i]
       globResolved = resolved.map((path) => {
         let slotIndex = 1
         return path.replace(trailingSlashRE, '/*').replace(wildTokenRE, () => {
@@ -234,6 +242,21 @@ function parsePathPattern(
     .replace(wildTokenRE, '(.*?)')
 
   return [new RegExp(`^${escapedPattern}$`), exports[pattern]]
+}
+
+// https://github.com/nodejs/node/blob/3c423a2030d35faace4aa85a7a05ed816a32f8d1/lib/internal/modules/esm/resolve.js#L605
+function patternKeyCompare(a: string, b: string) {
+  const aPatternIndex = a.indexOf('*')
+  const bPatternIndex = b.indexOf('*')
+  const baseLenA = aPatternIndex === -1 ? a.length : aPatternIndex + 1
+  const baseLenB = bPatternIndex === -1 ? b.length : bPatternIndex + 1
+  if (baseLenA > baseLenB) return -1
+  if (baseLenB > baseLenA) return 1
+  if (aPatternIndex === -1) return 1
+  if (bPatternIndex === -1) return -1
+  if (a.length > b.length) return -1
+  if (b.length > a.length) return 1
+  return 0
 }
 
 function missingEntry(
