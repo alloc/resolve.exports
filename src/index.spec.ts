@@ -224,6 +224,17 @@ describe('resolveExports', () => {
     })
   })
 
+  // https://github.com/lukeed/resolve.exports/issues/19
+  test('path pattern with leading dot', () => {
+    const pkg: PackageJson = {
+      exports: { './.warnings.jsii.js': './.warnings.jsii.js' }
+    }
+
+    expect(resolveExports(pkg, './.warnings.jsii.js')).toEqual([
+      './.warnings.jsii.js'
+    ])
+  })
+
   test('nested condition mismatch', () => {
     const pkg: PackageJson = {
       exports: {
