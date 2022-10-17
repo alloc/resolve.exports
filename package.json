@@ -1,6 +1,6 @@
 {
   "name": "@alloc/resolve.exports",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A tiny (854b), correct, general-purpose, and configurable \"exports\" resolver without file-system reliance",
   "repository": "alloc/resolve.exports",
   "license": "MIT",
