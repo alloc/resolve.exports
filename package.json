@@ -12,7 +12,8 @@
     "build": "tsup && tsc -p . --emitDeclarationOnly",
     "dev": "tsup --watch --sourcemap --dts",
     "coverage": "vitest run --coverage",
-    "test": "vitest"
+    "test": "vitest",
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "dist"
