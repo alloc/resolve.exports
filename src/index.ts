@@ -14,7 +14,8 @@ export interface ResolveExports {
     pkg: PackageJson,
     entry: string,
     options?: ResolveExports.Options,
-    inlineConditions?: string[]
+    inlineConditions?: string[],
+    allowedConditions?: string[]
   ): string[]
 }
 
@@ -45,7 +46,8 @@ export const resolveExports: ResolveExports = (
   pkg,
   entry,
   options = {},
-  inlineConditions
+  inlineConditions,
+  allowedConditions
 ) => {
   if (entry !== '.' && !entry.startsWith('./')) {
     return []
@@ -65,6 +67,13 @@ export const resolveExports: ResolveExports = (
   // An explicit "import" condition prevents "require" from being used.
   if (!conditions.has('import')) {
     expandSet(conditions, options.isRequire ? 'require' : 'import')
+  }
+  if (allowedConditions) {
+    for (const condition of conditions) {
+      if (!allowedConditions.includes(condition)) {
+        conditions.delete(condition)
+      }
+    }
   }
 
   const keys = Object.keys(exports)
