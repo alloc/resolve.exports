@@ -62,8 +62,9 @@ export const resolveExports: ResolveExports = (
     options.isProduction ? 'production' : 'development',
     'default'
   )
+  // An explicit "import" condition prevents "require" from being used.
   if (!conditions.has('import')) {
-    expandSet(conditions, options.isRequire ? 'require' : ['import', 'module'])
+    expandSet(conditions, options.isRequire ? 'require' : 'import')
   }
 
   const keys = Object.keys(exports)
