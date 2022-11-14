@@ -61,8 +61,7 @@ export const resolveExports: ResolveExports = (
   const conditions = expandSet(
     new Set(inlineConditions),
     options.conditions,
-    options.isProduction ? 'production' : 'development',
-    'default'
+    options.isProduction ? 'production' : 'development'
   )
   // An explicit "import" condition prevents "require" from being used.
   if (!conditions.has('import')) {
@@ -75,6 +74,8 @@ export const resolveExports: ResolveExports = (
       }
     }
   }
+  // The "default" condition is always allowed.
+  conditions.add('default')
 
   const keys = Object.keys(exports)
   if (keys[0][0] !== '.') {
