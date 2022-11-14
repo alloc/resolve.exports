@@ -12,7 +12,7 @@ export type PackageJson = {
 export interface ResolveExports {
   (
     pkg: PackageJson,
-    entry: string | string[],
+    entry: string,
     options?: ResolveExports.Options,
     inlineConditions?: string[],
     allowedConditions?: string[]
@@ -49,12 +49,6 @@ export const resolveExports: ResolveExports = (
   inlineConditions,
   allowedConditions
 ) => {
-  if (Array.isArray(entry)) {
-    const resolved = entry.map((e) =>
-      resolveExports(pkg, e, options, inlineConditions, allowedConditions)
-    )
-    return resolved.flat()
-  }
   if (entry !== '.' && !entry.startsWith('./')) {
     return []
   }
